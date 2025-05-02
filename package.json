@@ -1,0 +1,33 @@
+{
+  "name": "hardhat-project",
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "local-node": "hardhat node",
+    "deploy": "hardhat ignition deploy ./ignition/modules/DisputeKitShutterPoC.ts --network localhost",
+    "autovote": "ts-node scripts/shutterAutoVote.ts"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.0",
+    "@nomicfoundation/hardhat-ignition-viem": "^0.15.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^3.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.0",
+    "@nomicfoundation/hardhat-viem": "^2.0.0",
+    "@shutter-network/shutter-sdk": "^0.0.1",
+    "@types/chai": "^4.2.0",
+    "@types/chai-as-promised": "^7.1.6",
+    "@types/mocha": ">=9.1.0",
+    "@types/node": ">=18.0.0",
+    "chai": "^4.2.0",
+    "gluegun": "^5.2.0",
+    "hardhat": "^2.14.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "isomorphic-fetch": "^3.0.0",
+    "solidity-coverage": "^0.8.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.0.4",
+    "viem": "^2.7.6"
+  },
+  "packageManager": "yarn@4.9.1"
+}
