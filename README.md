@@ -2,7 +2,7 @@
 
 This code demonstrates a proof-of-concept for a shielded onchain voting system using [the Shutter API](https://github.com/shutter-network/shutter-api), a threshold encryption service by [Shutter Network](https://www.shutter.network).
 
-Credits to @whwgeorge for the protocol which does not require a trusted oracle during the vote reveal step. 
+Credits to [@williamhwgeorge](https://x.com/williamhwgeorge) for the protocol which does not require a trusted oracle during the vote reveal step. 
 
 Automation of the reveal step improves UX compared to typical 2-steps commitment/reveal protocols without additional trust assumption beyond Shutter Network.
 
