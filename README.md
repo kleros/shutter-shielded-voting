@@ -2,6 +2,10 @@
 
 This project demonstrates a proof-of-concept for a shielded voting system using the Shutter Network.
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/tUtdH9pZLEACPkVlx34GZYPJq.svg)](https://asciinema.org/a/tUtdH9pZLEACPkVlx34GZYPJq)
+
 ## Setup
 
 ```bash
