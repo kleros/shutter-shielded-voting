@@ -4,7 +4,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "local-node": "hardhat node",
-    "deploy": "hardhat ignition deploy ./ignition/modules/DisputeKitShutterPoC.ts --network localhost",
+    "deploy": "hardhat ignition deploy ./ignition/modules/ShutterShieldedVoting.ts --network localhost",
     "autovote": "ts-node scripts/shutterAutoVote.ts"
   },
   "devDependencies": {

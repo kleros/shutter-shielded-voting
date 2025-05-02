@@ -1,24 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract DisputeKitShutterPoC {
+contract ShutterShieldedVoting {
     struct Vote {
-        address account; // The address of the juror.
+        address voter; // The address of the juror.
         bytes32 commit; // The hash of the encrypted message + salt
         uint256 choice; // The choice of the juror.
         bool voted; // True if the vote has been cast.
     }
 
     Vote[] public votes;
-    uint256 public winningChoice; // The choice with the most votes. Note that in the case of a tie, it is the choice that reached the tied number of votes first.
-    mapping(uint256 => uint256) public counts; // The sum of votes for each choice in the form `counts[choice]`.
-    bool public tied; // True if there is a tie, false otherwise.
-    uint256 public totalCommitted;
-    uint256 public totalVoted;
 
     event CommitCast(
-        uint256 indexed _coreDisputeID,
-        address indexed _juror,
+        address indexed _voter,
         uint256[] _voteIDs,
         bytes32 _commit,
         bytes32 _identity,
@@ -26,18 +20,18 @@ contract DisputeKitShutterPoC {
     );
 
     event VoteCast(
-        uint256 indexed _coreDisputeID,
-        address indexed _juror,
+        address indexed _voter,
         uint256[] _voteIDs,
         uint256 indexed _choice,
         string _justification
     );
 
     constructor() {
-        address juror = msg.sender;
-        votes.push(Vote({account: juror, commit: bytes32(0), choice: 0, voted: false}));
-        votes.push(Vote({account: juror, commit: bytes32(0), choice: 0, voted: false}));
-        votes.push(Vote({account: juror, commit: bytes32(0), choice: 0, voted: false}));
+        // Granting 3 votes to the deployer
+        address voter = msg.sender;
+        votes.push(Vote({voter: voter, commit: bytes32(0), choice: 0, voted: false}));
+        votes.push(Vote({voter: voter, commit: bytes32(0), choice: 0, voted: false}));
+        votes.push(Vote({voter: voter, commit: bytes32(0), choice: 0, voted: false}));
     }
 
     /**
@@ -52,8 +46,14 @@ contract DisputeKitShutterPoC {
         return keccak256(abi.encode(_choice, _salt, justificationHash));
     }
 
+    /**
+     * @dev Casts a commitment for a set of voteIDs
+     * @param _voteIDs The IDs of the votes to commit
+     * @param _commit The commitment hash
+     * @param _identity The Shutter identity
+     * @param _encryptedVote The Shutter encrypted vote
+     */
     function castCommit(
-        uint256 _coreDisputeID,
         uint256[] calldata _voteIDs,
         bytes32 _commit,
         bytes32 _identity,
@@ -61,24 +61,27 @@ contract DisputeKitShutterPoC {
     ) external {
         // Store the commitment hash for each voteID
         for (uint256 i = 0; i < _voteIDs.length; i++) {
-            require(votes[_voteIDs[i]].account == msg.sender, "The caller has to own the vote.");
+            require(votes[_voteIDs[i]].voter == msg.sender, "The caller has to own the vote.");
             votes[_voteIDs[i]].commit = _commit;
         }
 
-        totalCommitted += _voteIDs.length;
-        emit CommitCast(_coreDisputeID, msg.sender, _voteIDs, _commit, _identity, _encryptedVote);
+        emit CommitCast(msg.sender, _voteIDs, _commit, _identity, _encryptedVote);
     }
 
+    /**
+     * @dev Casts a vote for a set of voteIDs
+     * @param _voteIDs The IDs of the votes to cast
+     * @param _choice The vote choice
+     * @param _salt The salt used for commitment
+     * @param _justification The vote justification
+     */
     function castVote(
-        uint256 _coreDisputeID,
         uint256[] calldata _voteIDs,
         uint256 _choice,
         bytes32 _salt,
         string memory _justification
     ) external {
         require(_voteIDs.length > 0, "No voteID provided");
-
-        // TODO: what happens if hiddenVotes are not enabled?
 
         // Verify the commitment hash for all votes at once
         bytes32 computedHash = hashVote(_choice, _salt, _justification);
@@ -90,22 +93,6 @@ contract DisputeKitShutterPoC {
             votes[_voteIDs[i]].voted = true;
         }
 
-        totalVoted += _voteIDs.length;
-
-        counts[_choice] += _voteIDs.length;
-        if (_choice == winningChoice) {
-            if (tied) tied = false;
-        } else {
-            // Voted for another choice.
-            if (counts[_choice] == counts[winningChoice]) {
-                // Tie.
-                if (!tied) tied = true;
-            } else if (counts[_choice] > counts[winningChoice]) {
-                // New winner.
-                winningChoice = _choice;
-                tied = false;
-            }
-        }
-        emit VoteCast(_coreDisputeID, msg.sender, _voteIDs, _choice, _justification);
+        emit VoteCast(msg.sender, _voteIDs, _choice, _justification);
     }
 }

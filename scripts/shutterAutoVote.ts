@@ -3,7 +3,7 @@ import { mnemonicToAccount } from "viem/accounts";
 import { hardhat } from "viem/chains";
 import { print } from "gluegun";
 import { encrypt, decrypt, DECRYPTION_DELAY } from "./shutter";
-import { abi as DisputeKitShutterPoCAbi } from "../artifacts/contracts/DisputeKitShutterPoC.sol/DisputeKitShutterPoC.json";
+import { abi as ShutterShieldedVotingAbi } from "../artifacts/contracts/ShutterShieldedVoting.sol/ShutterShieldedVoting.json";
 import crypto from "crypto";
 
 // Constants
@@ -12,8 +12,7 @@ const { bold } = print.colors;
 
 // Store encrypted votes for later decryption
 type EncryptedVote = {
-  coreDisputeID: bigint;
-  juror: Address;
+  voter: Address;
   identity: Hex;
   encryptedVote: string;
   timestamp: number;
@@ -39,13 +38,12 @@ const walletClient = createWalletClient({
 
 const disputeKit = getContract({
   address: disputeKitAddress,
-  abi: DisputeKitShutterPoCAbi,
+  abi: ShutterShieldedVotingAbi,
   client: { public: publicClient, wallet: walletClient },
 });
 
 type CommitCastEventArgs = {
-  _coreDisputeID: bigint;
-  _juror: Address;
+  _voter: Address;
   _voteIDs: bigint[];
   _commit: Hex;
   _identity: Hex;
@@ -84,12 +82,10 @@ function decode(message: string) {
  * Cast a commit on-chain
  */
 async function castCommit({
-  coreDisputeID,
   voteIDs,
   choice,
   justification,
 }: {
-  coreDisputeID: bigint;
   voteIDs: bigint[];
   choice: bigint;
   justification: string;
@@ -115,7 +111,6 @@ async function castCommit({
     // Cast the commit on-chain
     print.highlight(bold("\n🔏 Casting commit onchain"));
     const txHash = await disputeKit.write.castCommit([
-      coreDisputeID,
       voteIDs,
       commitHash,
       identity as Hex,
@@ -131,8 +126,7 @@ async function castCommit({
 
     // Store encrypted vote for later decryption
     encryptedVotes.push({
-      coreDisputeID,
-      juror: account.address,
+      voter: account.address,
       identity: identity as Hex,
       encryptedVote,
       timestamp: Math.floor(Date.now() / 1000),
@@ -161,16 +155,16 @@ export async function autoVote() {
         try {
           print.highlight(bold("\n🔐 Retrieving CommitCast event"));
           const filter = await publicClient.createContractEventFilter({
-            abi: DisputeKitShutterPoCAbi,
+            abi: ShutterShieldedVotingAbi,
             eventName: "CommitCast",
-            args: [vote.coreDisputeID, vote.juror],
+            args: [vote.voter],
           });
           let events = await publicClient.getLogs(filter);
           if (events.length !== 1) {
             throw new Error("No CommitCast event found");
           }
           const { args } = decodeEventLog({
-            abi: DisputeKitShutterPoCAbi,
+            abi: ShutterShieldedVotingAbi,
             eventName: "CommitCast",
             topics: events[0].topics,
             data: events[0].data,
@@ -185,7 +179,6 @@ export async function autoVote() {
 
           print.highlight(bold("\n🗳️ Casting vote onchain"));
           const txHash = await disputeKit.write.castVote([
-            vote.coreDisputeID,
             commitCast._voteIDs,
             choice,
             salt,
@@ -230,7 +223,6 @@ async function main() {
   try {
     // Cast an encrypted commit
     await castCommit({
-      coreDisputeID: 0n,
       voteIDs: [0n, 1n, 2n],
       choice: 2n,
       justification: "This is my vote justification",

@@ -50,7 +50,7 @@ The vote commitment is cast onchain by the voter and consists of the salted hash
 
 The vote remains hidden until the decryption key is released by the Shutter Network.
 
-To enable later decryption, the Shutter identity and encrypted vote are [emitted as part of `CommitCast` event](https://github.com/kleros/shutter-shielded-voting/blob/cf721ed7558bcf8c17fc701b66ad1bf315da0519/contracts/DisputeKitShutterPoC.sol#L69).
+To enable later decryption, the Shutter identity and encrypted vote are [emitted as part of `CommitCast` event](./contracts/ShutterShieldedVoting.sol#L68).
 
 ### 2. Vote reveal
 
@@ -68,7 +68,7 @@ The vote is emitted as part of `VoteCast` event.
 
 ### Implementation
 
-- Voting contract: [DisputeKitShutterPoC.sol](./contracts/DisputeKitShutterPoC.sol)
+- Voting contract: [ShutterShieldedVoting.sol](./contracts/ShutterShieldedVoting.sol)
 - Voting commitment and reveal bot: [shutterAutoVote.ts](./scripts/shutterAutoVote.ts)
 - Shutter API wrapper: [shutter.ts](./scripts/shutter.ts)
 
